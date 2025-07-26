@@ -22,6 +22,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Free disk space
+      run: |
+        echo "Disk usage before cleanup:"
+        df -h
+        # Remove large packages to free space
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        sudo docker system prune -af --volumes
+        echo "Disk usage after cleanup:"
+        df -h
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -47,6 +60,7 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push Docker image
+      id: main-build
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -54,10 +68,18 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=main
+        cache-to: type=gha,mode=max,scope=main
         build-args: |
           BUILDKIT_INLINE_CACHE=1
+
+    - name: Clean up after main build
+      run: |
+        echo "Disk usage before intermediate cleanup:"
+        df -h
+        sudo docker system prune -af
+        echo "Disk usage after intermediate cleanup:"
+        df -h
 
     - name: Build vLLM Docker image
       uses: docker/build-push-action@v5
@@ -70,8 +92,8 @@ jobs:
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-vllm:${{ github.ref_name }}
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-vllm:latest
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=vllm
+        cache-to: type=gha,mode=max,scope=vllm
         build-args: |
           BUILDKIT_INLINE_CACHE=1
 
@@ -84,6 +106,13 @@ jobs:
         repository: ${{ env.IMAGE_NAME }}
         readme-filepath: ./.dockerhub/description.md
         short-description-filepath: ./.dockerhub/short-description.txt
+
+    - name: Final disk space check
+      run: |
+        echo "Final disk usage:"
+        df -h
+        echo "Docker images:"
+        docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
 
     - name: Image digest
       if: github.event_name != 'pull_request'
