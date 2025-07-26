@@ -1,0 +1,89 @@
+# Git files
+.git
+.gitignore
+.gitmodules
+
+# Documentation
+*.md
+docs/
+tech_blogs/
+figures/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyTorch models (will be downloaded at runtime)
+*.bin
+*.safetensors
+*.ckpt
+*.pth
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Test outputs
+outputs/
+test_*.wav
+generation*.wav
+
+# Environment
+.env
+.venv
+env/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Archives
+*.tar.gz
+*.zip
+*.rar
+
+# Docker
+Dockerfile*
+docker-compose*
