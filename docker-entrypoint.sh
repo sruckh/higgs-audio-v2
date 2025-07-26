@@ -11,11 +11,17 @@ else
 fi
 
 # Set default model paths if not provided
-export MODEL_PATH=${MODEL_PATH:-"bosonai/higgs-audio-v2-generation-3B-base"}
-export AUDIO_TOKENIZER_PATH=${AUDIO_TOKENIZER_PATH:-"bosonai/higgs-audio-v2-tokenizer"}
+export MODEL_PATH=${MODEL_PATH:-"sruckh/higgs-audio-v2"}
+export AUDIO_TOKENIZER_PATH=${AUDIO_TOKENIZER_PATH:-"sruckh/higgs-audio-v2"}
 
 # Create output directory if it doesn't exist
 mkdir -p /app/outputs
+
+# Download models at runtime (not during build)
+echo "Downloading models at runtime..."
+python /app/download_models.py --model ${MODEL_PATH} || {
+    echo "Warning: Model download failed, will attempt to download during inference"
+}
 
 # If no command provided, show help
 if [ $# -eq 0 ]; then

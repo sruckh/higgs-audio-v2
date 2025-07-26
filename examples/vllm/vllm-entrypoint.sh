@@ -20,11 +20,17 @@ else
 fi
 
 # Set default model paths if not provided
-export MODEL_PATH=${MODEL_PATH:-"bosonai/higgs-audio-v2-generation-3B-base"}
-export AUDIO_TOKENIZER_PATH=${AUDIO_TOKENIZER_PATH:-"bosonai/higgs-audio-v2-tokenizer"}
+export MODEL_PATH=${MODEL_PATH:-"sruckh/higgs-audio-v2"}
+export AUDIO_TOKENIZER_PATH=${AUDIO_TOKENIZER_PATH:-"sruckh/higgs-audio-v2"}
 
 # Create necessary directories
 mkdir -p /app/outputs
+
+# Download models at runtime (not during build)
+echo "Downloading models at runtime..."
+python /app/download_models.py --model ${MODEL_PATH} || {
+    echo "Warning: Model download failed, vLLM will attempt to download during startup"
+}
 
 # Set default voice presets directory
 export VOICE_PRESETS_DIR=${VOICE_PRESETS_DIR:-"/app/voice_presets"}

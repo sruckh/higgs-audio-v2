@@ -7,34 +7,42 @@
 **Progress**: 3/3 tasks completed
 
 ## Current Task
-**Task ID**: TASK-2025-07-26-005
-**Title**: GitHub Actions ARM Platform Removal for Build Optimization
+**Task ID**: TASK-2025-07-26-006
+**Title**: Docker Build Fix and API Documentation Enhancement
 **Status**: COMPLETE
-**Started**: 2025-07-26 18:00
-**Dependencies**: TASK-2025-07-26-003
+**Started**: 2025-07-26 20:15
+**Dependencies**: TASK-2025-07-26-005
 
 ### Task Context
 <!-- Critical information needed to resume this task -->
-- **Previous Work**: Completed DockerHub description and documentation finalization (TASK-2025-07-26-004)
+- **Previous Work**: Completed ARM platform removal for build optimization (TASK-2025-07-26-005)
 - **Key Files**: 
-  - `.github/workflows/docker-build-push.yml:53,67` - Removed ARM64 platform from Docker builds
-  - GitHub Actions workflow configuration for x86_64-only builds
+  - `Dockerfile:31-33,39-40` - Added HF_HUB_OFFLINE environment variables to prevent model downloads during build
+  - `runpod_serverless/Dockerfile:37-40,48-50` - Same offline mode protection for serverless builds
+  - `examples/vllm/Dockerfile:34-40` - vLLM Docker build protection
+  - `boson_multimodal/__init__.py:1-4` - Conditional model imports based on offline mode
+  - `boson_multimodal/model/higgs_audio/__init__.py:1-17` - Conditional transformers registration
+  - `download_models.py:1-75` - New runtime model download script
+  - `API.md:1-495` - Complete serverless API documentation with 6 endpoints
 - **Environment**: 
-  - GitHub Actions experiencing disk space issues during ARM64 builds
-  - ARM platform removal required for successful CI/CD execution
+  - GitHub Actions disk space issues resolved by preventing model downloads during build
+  - Models now downloaded at runtime instead of build time
+  - Comprehensive API documentation for Runpod serverless deployment
 - **Next Steps**: 
-  1. Update TASKS.md with ARM platform removal task completion
-  2. Update JOURNAL.md with build optimization entry
-  3. Ask Serena to create memory with all updates
+  1. Update TASKS.md with Docker build fix completion
+  2. Update JOURNAL.md with Docker fix and API documentation entries
+  3. Ask Serena to create memory documenting all changes
   4. Commit and push all changes to GitHub
 
 ### Findings & Decisions
-- **FINDING-001**: GitHub Actions ARM64 builds causing disk space errors during multi-platform Docker builds
-- **FINDING-002**: ARM64 platform not essential for NVIDIA PyTorch base image deployment
-- **FINDING-003**: x86_64-only builds sufficient for target deployment environments
-- **DECISION-001**: Remove ARM64 platform from both main and vLLM Docker builds
-- **DECISION-002**: Maintain linux/amd64 platform only for optimized CI/CD performance
-- **DECISION-003**: Focus build resources on single architecture for faster deployment
+- **FINDING-001**: GitHub Actions disk space issues caused by models downloading during Docker build process
+- **FINDING-002**: HuggingFace transformers and model imports triggered during `pip install -e .` in Dockerfiles
+- **FINDING-003**: Models should be downloaded at runtime, not build time, for proper serverless architecture
+- **FINDING-004**: API documentation needed comprehensive endpoint specifications for all 6 serverless use cases
+- **DECISION-001**: Implement HF_HUB_OFFLINE=1 during Docker builds to prevent model downloads
+- **DECISION-002**: Create runtime model download script and update all entrypoint scripts
+- **DECISION-003**: Make model imports conditional in __init__.py files based on offline mode
+- **DECISION-004**: Transform API.md into complete serverless endpoint documentation with examples
 
 ### Task Chain
 1. ✅ **TASK-2025-07-26-001**: Repository setup and CI/CD pipeline (COMPLETE)
@@ -64,6 +72,11 @@
    - Updated both main and vLLM Docker build workflows
    - Resolved disk space issues in CI/CD pipeline
    - Optimized build performance for x86_64-only deployment
+6. ✅ **TASK-2025-07-26-006**: Docker Build Fix and API Documentation Enhancement (COMPLETE)
+   - Fixed GitHub Actions disk space issues by preventing model downloads during build
+   - Implemented runtime model download strategy across all Docker images
+   - Created comprehensive API documentation for 6 serverless endpoints
+   - Updated package imports to support offline build mode
 
 ## Upcoming Phases
 <!-- Future work not yet started -->
@@ -80,6 +93,7 @@
 - ✅ TASK-2025-07-26-003: Runpod Serverless Complete Implementation (Complete)
 - ✅ TASK-2025-07-26-004: DockerHub Description and Documentation Finalization (Complete)
 - ✅ TASK-2025-07-26-005: GitHub Actions ARM Platform Removal for Build Optimization (Complete)
+- ✅ TASK-2025-07-26-006: Docker Build Fix and API Documentation Enhancement (Complete)
 - [Older tasks will appear in TASKS_ARCHIVE/]
 
 ---

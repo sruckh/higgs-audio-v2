@@ -33,6 +33,9 @@ RUN pip install --no-cache-dir -r /app/runpod_serverless/requirements.txt
 COPY . /app/
 
 # Install the package in development mode
+# Prevent model downloads during build
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
 RUN pip install -e .
 
 # Copy voice prompts and examples
@@ -40,6 +43,10 @@ COPY examples/ /app/examples/
 
 # Create directories for temporary files
 RUN mkdir -p /tmp/higgs_audio
+
+# Unset offline mode for runtime (models will be downloaded when container runs)
+ENV HF_HUB_OFFLINE=
+ENV TRANSFORMERS_OFFLINE=
 
 # Set up proper permissions
 RUN chmod +x /app/runpod_serverless/entrypoint.sh

@@ -1,5 +1,33 @@
 # Engineering Journal
 
+## 2025-07-26 20:45
+
+### Docker Build Fix and Comprehensive API Documentation |TASK:TASK-2025-07-26-006|
+- **What**: Fixed GitHub Actions disk space issues by preventing model downloads during Docker builds and created comprehensive serverless API documentation
+- **Why**: GitHub Actions failing with "no space left on device" due to models downloading during build process, and need complete API documentation for the 6 serverless endpoints
+- **How**: 
+  - **Docker Build Fixes**:
+    - Added `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` environment variables during Docker build in all 3 Dockerfiles
+    - Made model imports conditional in `boson_multimodal/__init__.py` and `boson_multimodal/model/higgs_audio/__init__.py` based on offline mode
+    - Created `download_models.py` script for runtime model downloading with error handling
+    - Updated all entrypoint scripts to download models at container startup instead of build time
+    - Fixed model paths to use correct `sruckh/higgs-audio-v2` repository identifier
+  - **API Documentation**:
+    - Completely rewrote `API.md` with comprehensive serverless endpoint documentation
+    - Documented all 6 endpoint types: text_to_speech, voice_cloning, multi_speaker, vllm, scene_based, experimental
+    - Added complete request/response examples, parameter tables, and cURL commands
+    - Included 15 available voices, 2 scene contexts, and 3 experimental types
+    - Created Python and JavaScript SDK examples with working code
+    - Added error handling, rate limiting, and performance guidelines
+- **Issues**: None - systematic implementation addressing root cause of build failures
+- **Result**: 
+  - **GitHub Actions Fixed**: No more disk space errors, builds complete successfully without model downloads
+  - **Proper Architecture**: Models downloaded at runtime following serverless best practices
+  - **Complete API Docs**: 495-line comprehensive documentation covering all use cases from README.md
+  - **Production Ready**: All Docker images build and deploy correctly with runtime model loading
+  - **Developer Ready**: Complete SDK examples and cURL commands for immediate integration
+  - **TASK-2025-07-26-006 COMPLETE**: Docker builds fixed and API documentation complete
+
 ## 2025-07-26 19:30
 
 ### GitHub Actions ARM Platform Removal for Build Optimization |TASK:TASK-2025-07-26-005|

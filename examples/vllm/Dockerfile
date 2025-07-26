@@ -30,7 +30,14 @@ RUN pip install --no-cache-dir vllm
 COPY . .
 
 # Install the package in editable mode
+# Prevent model downloads during build
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
 RUN pip install -e .
+
+# Unset offline mode for runtime
+ENV HF_HUB_OFFLINE=
+ENV TRANSFORMERS_OFFLINE=
 
 # Create directory for models, voice samples, and presets
 RUN mkdir -p /app/models /app/outputs /app/voice_presets
@@ -48,9 +55,9 @@ EXPOSE 8000
 
 # Set default command to start vLLM server
 ENTRYPOINT ["vllm-entrypoint.sh"]
-CMD ["--served-model-name", "higgs-audio-v2-generation-3B-base", \
-     "--model", "bosonai/higgs-audio-v2-generation-3B-base", \
-     "--audio-tokenizer-type", "bosonai/higgs-audio-v2-tokenizer", \
+CMD ["--served-model-name", "higgs-audio-v2", \
+     "--model", "sruckh/higgs-audio-v2", \
+     "--audio-tokenizer-type", "sruckh/higgs-audio-v2", \
      "--limit-mm-per-prompt", "audio=50", \
      "--max-model-len", "8192", \
      "--port", "8000", \

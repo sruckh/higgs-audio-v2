@@ -27,10 +27,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Install the package in editable mode
+# Set environment variables to prevent model downloads during build
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
 RUN pip install -e .
 
 # Create directory for models and voice samples
 RUN mkdir -p /app/models /app/outputs
+
+# Unset offline mode for runtime (models will be downloaded when container runs)
+ENV HF_HUB_OFFLINE=
+ENV TRANSFORMERS_OFFLINE=
 
 # Set up entry point
 COPY docker-entrypoint.sh /usr/local/bin/

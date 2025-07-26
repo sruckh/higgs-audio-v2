@@ -25,6 +25,12 @@ fi
 echo "Checking disk space..."
 df -h
 
+# Download models at runtime (not during build)
+echo "Downloading models at runtime..."
+python /app/download_models.py --model ${MODEL_NAME_OR_PATH} || {
+    echo "Warning: Model download failed, will attempt to download during model loading"
+}
+
 # Pre-load models
 echo "Pre-loading models..."
 python -c "
