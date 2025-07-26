@@ -1,0 +1,1 @@
+Advanced AI-powered audio generation with zero-shot voice cloning, multi-speaker synthesis, and real-time streaming. Production-ready Docker container with GPU acceleration and comprehensive API endpoints.

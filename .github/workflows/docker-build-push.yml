@@ -75,6 +75,16 @@ jobs:
         build-args: |
           BUILDKIT_INLINE_CACHE=1
 
+    - name: Update DockerHub Description
+      if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      uses: peter-evans/dockerhub-description@v4
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        repository: ${{ env.IMAGE_NAME }}
+        readme-filepath: ./.dockerhub/description.md
+        short-description-filepath: ./.dockerhub/short-description.txt
+
     - name: Image digest
       if: github.event_name != 'pull_request'
       run: echo ${{ steps.build.outputs.digest }}
