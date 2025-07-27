@@ -54,11 +54,12 @@ jobs:
           type=semver,pattern={{major}}
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push Docker image
+    - name: Build and push RunPod serverless Docker image
       id: main-build
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: ./runpod_serverless/Dockerfile
         platforms: linux/amd64
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
@@ -70,24 +71,8 @@ jobs:
 
     - name: Build completed
       run: |
-        echo "Main container build completed"
+        echo "RunPod serverless container build completed"
         echo "Minimal architecture eliminates disk space issues"
-
-    - name: Build vLLM Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./examples/vllm/Dockerfile
-        platforms: linux/amd64
-        push: ${{ github.event_name != 'pull_request' }}
-        tags: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-vllm:${{ github.ref_name }}
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-vllm:latest
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha,scope=vllm
-        cache-to: type=gha,mode=max,scope=vllm
-        build-args: |
-          BUILDKIT_INLINE_CACHE=1
 
     - name: Update DockerHub Description
       if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -101,10 +86,10 @@ jobs:
 
     - name: Build summary
       run: |
-        echo "Build completed successfully with minimal serverless architecture"
-        echo "Container sizes should be ~100MB instead of previous ~10GB+"
+        echo "RunPod serverless container build completed successfully"
+        echo "Container size should be ~100MB instead of previous ~10GB+"
         docker images --format "table {{.Repository}}	{{.Tag}}	{{.Size}}" | grep higgs-audio
 
     - name: Image digest
       if: github.event_name != 'pull_request'
-      run: echo ${{ steps.build.outputs.digest }}
+      run: echo ${{ steps.main-build.outputs.digest }}

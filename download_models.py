@@ -14,7 +14,7 @@ from transformers import AutoConfig, AutoTokenizer
 def download_models(model_name_or_path="sruckh/higgs-audio-v2", cache_dir=None):
     """
     Download all required models for Higgs Audio V2.
-    
+
     Args:
         model_name_or_path: HuggingFace model identifier
         cache_dir: Directory to cache models (default: ~/.cache/huggingface)
@@ -55,13 +55,13 @@ def main():
     
     parser = argparse.ArgumentParser(description="Download Higgs Audio V2 models")
     parser.add_argument(
-        "--model", 
+        "--model",
         default="sruckh/higgs-audio-v2",
-        help="Model name or path (default: sruckh/higgs-audio-v2)"
+        help="Model name or path (default: sruckh/higgs-audio-v2)",
     )
     parser.add_argument(
         "--cache-dir",
-        help="Directory to cache models (default: ~/.cache/huggingface)"
+        help="Directory to cache models (default: ~/.cache/huggingface)",
     )
     
     args = parser.parse_args()
