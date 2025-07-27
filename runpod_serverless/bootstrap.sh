@@ -63,7 +63,7 @@ install_core_deps() {
     
     # Install transformers and accelerate
     pip install --no-cache-dir \
-        transformers>=4.45.1,\<4.47.0 \
+        transformers>=4.45.1,<4.47.0 \
         accelerate>=0.26.0 \
         || { log "❌ Failed to install transformers/accelerate"; exit 1; }
 }
