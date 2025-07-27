@@ -1,58 +1,58 @@
 # Runpod Serverless Dockerfile for Higgs Audio V2
 # Based on NVIDIA PyTorch container for optimal GPU performance
 
-FROM nvcr.io/nvidia/pytorch:25.02-py3
+# Super minimal Serverless Dockerfile for GPU Cloud deployment
+# Only essential system dependencies - everything else happens at runtime
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-
-# Install system dependencies
+# Install ONLY essential system dependencies
+# ffmpeg: Audio processing
+# libsndfile1: Audio file I/O
+# curl/wget: Download tools for bootstrap
+# git: For pip installs from git repos
 RUN apt-get update && apt-get install -y \
-    git \
-    wget \
-    curl \
     ffmpeg \
     libsndfile1 \
-    libsndfile1-dev \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Copy requirements first for better Docker layer caching
-COPY requirements.txt /app/runpod_serverless/requirements.txt
-COPY ../requirements.txt /app/requirements.txt
+# Install only pip (no packages yet - happens at runtime)
+RUN pip install --no-cache-dir --upgrade pip
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/runpod_serverless/requirements.txt
+# Copy ONLY the serverless application code (not the entire project)
+COPY runpod_serverless/ ./runpod_serverless/
+COPY boson_multimodal/ ./boson_multimodal/
+COPY examples/voice_prompts/ ./examples/voice_prompts/
+COPY setup.py ./
+COPY README.md ./
+COPY download_models.py ./
 
-# Copy the entire project
-COPY . /app/
+# Copy bootstrap and entrypoint scripts
+COPY runpod_serverless/bootstrap.sh ./
+COPY runpod_serverless/entrypoint.sh ./
 
-# Install the package in development mode
-# Prevent model downloads during build
-ENV HF_HUB_OFFLINE=1
-ENV TRANSFORMERS_OFFLINE=1
-RUN pip install -e .
+# Make scripts executable
+RUN chmod +x bootstrap.sh entrypoint.sh
 
-# Copy voice prompts and examples
-COPY examples/ /app/examples/
-
-# Create directories for temporary files
+# Create temp directory for runtime files
 RUN mkdir -p /tmp/higgs_audio
 
-# Unset offline mode for runtime (models will be downloaded when container runs)
-ENV HF_HUB_OFFLINE=
-ENV TRANSFORMERS_OFFLINE=
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Set up proper permissions
-RUN chmod +x /app/runpod_serverless/entrypoint.sh
+# No pip installs, no model downloads, no heavy dependencies
+# Container should be ~100MB instead of 10GB+
 
-# Expose port for health checks (optional)
+# Expose port for health checks
 EXPOSE 8000
 
-# Set the entrypoint
-ENTRYPOINT ["/app/runpod_serverless/entrypoint.sh"]
+# Entry point runs bootstrap then starts service
+ENTRYPOINT ["./entrypoint.sh"]

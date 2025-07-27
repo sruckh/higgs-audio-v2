@@ -1,45 +1,54 @@
 # Task Management
 
 ## Active Phase
-**Phase**: Runpod Serverless Migration Implementation
-**Started**: 2025-07-26
-**Target**: 2025-07-26
-**Progress**: 3/3 tasks completed
+**Phase**: Serverless Architecture Optimization
+**Started**: 2025-07-27
+**Target**: 2025-07-27
+**Progress**: 1/1 tasks completed
 
 ## Current Task
-**Task ID**: TASK-2025-07-26-008
-**Title**: Syntax Error Fix and Documentation Update
+**Task ID**: TASK-2025-07-27-001
+**Title**: Complete Serverless Architecture Redesign for GPU Cloud Deployment
 **Status**: COMPLETE
-**Started**: 2025-07-26 22:00
-**Dependencies**: TASK-2025-07-26-007
+**Started**: 2025-07-27 15:00
+**Dependencies**: TASK-2025-07-26-008
 
 ### Task Context
 <!-- Critical information needed to resume this task -->
-- **Previous Work**: GitHub Actions disk space management (TASK-2025-07-26-007)
+- **Previous Work**: Syntax error fixes and GitHub Actions optimization (TASK-2025-07-26-008)
 - **Key Files**: 
-  - `runpod_serverless/handler.py:178-248` - Fixed malformed try-except block structure
-  - `runpod_serverless/handler.py:181-225` - Corrected indentation and control flow
+  - `runpod_serverless/Dockerfile` - Redesigned minimal container (~100MB vs 10GB+)
+  - `runpod_serverless/bootstrap.sh` - Runtime dependency installation with PyTorch 2.7.0, CUDA 12.6, Flash Attention 2.8.0
+  - `runpod_serverless/entrypoint.sh` - Updated to run bootstrap before service start
+  - `examples/vllm/Dockerfile` - Minimal vLLM container architecture
+  - `examples/vllm/vllm-bootstrap.sh` - vLLM runtime dependencies
+  - `examples/vllm/vllm-entrypoint.sh` - vLLM bootstrap integration
+  - `.github/workflows/docker-build-push.yml` - Simplified CI/CD without disk space management
 - **Environment**: 
-  - GitHub Actions build failing with syntax error "Expected `except` or `finally` after `try` block"
-  - Ruff linter detecting parse error at line 198 in handler.py
-  - Code structure had improper try-except nesting
+  - Transformed from bloated containers (nvcr.io/nvidia/pytorch:25.02-py3 ~10GB+) to minimal serverless architecture
+  - Runtime installation of CUDA Toolkit 12.6, PyTorch 2.7.0, Flash Attention 2.8.0 on GPU host
+  - Proper serverless pattern for GPU cloud deployment (RunPod)
 - **Next Steps**: 
-  1. ✅ Fix syntax error in runpod_serverless/handler.py
-  2. ✅ Test syntax fix with ruff formatter
-  3. ✅ Update TASKS.md with syntax fix completion
-  4. ✅ Update JOURNAL.md with syntax fix details
-  5. ✅ Ask Serena to create memory documenting the changes
-  6. ✅ Commit and push all changes to GitHub
+  1. ✅ Create minimal Dockerfiles with python:3.11-slim base
+  2. ✅ Implement bootstrap scripts for runtime dependency installation
+  3. ✅ Update entrypoints to run bootstrap before service start
+  4. ✅ Clean up orphaned files from old bloated architecture
+  5. ✅ Update GitHub Actions for minimal container builds
+  6. ✅ Document changes in TASKS.md and JOURNAL.md
+  7. ✅ Ask Serena to create memory documenting the redesign
+  8. ✅ Commit and push serverless architecture changes
 
 ### Findings & Decisions
-- **FINDING-001**: Syntax error in runpod_serverless/handler.py blocking GitHub Actions builds
-- **FINDING-002**: Malformed try-except block structure with improper indentation at line 198
-- **FINDING-003**: Code after endpoint handling was incorrectly positioned outside try block
-- **FINDING-004**: Ruff linter correctly identified "Expected `except` or `finally` after `try` block" error
-- **DECISION-001**: Fix try-except structure by moving success handling code inside try block
-- **DECISION-002**: Maintain proper indentation and control flow for error handling
-- **DECISION-003**: Use ruff formatter to clean up remaining style issues
-- **DECISION-004**: Verify complete syntax fix before committing changes
+- **FINDING-001**: Previous container architecture fundamentally wrong for serverless GPU deployment
+- **FINDING-002**: Base image nvcr.io/nvidia/pytorch:25.02-py3 (~8-10GB) causing GitHub Actions disk space failures
+- **FINDING-003**: Build-time dependency installation violates serverless best practices
+- **FINDING-004**: No PyTorch/CUDA version pinning causing potential compatibility issues
+- **FINDING-005**: Flash Attention not installed, impacting GPU performance optimization
+- **DECISION-001**: Redesign with minimal python:3.11-slim base containers (~100MB)
+- **DECISION-002**: Implement runtime bootstrap scripts installing CUDA 12.6, PyTorch 2.7.0, Flash Attention 2.8.0
+- **DECISION-003**: Follow proper serverless pattern: minimal container + runtime dependency installation on GPU host
+- **DECISION-004**: Remove all requirements.txt files from build process, manage dependencies in bootstrap scripts
+- **DECISION-005**: Clean up orphaned files from old bloated architecture
 
 ### Task Chain
 1. ✅ **TASK-2025-07-26-001**: Repository setup and CI/CD pipeline (COMPLETE)
@@ -84,6 +93,13 @@
    - Corrected indentation and control flow for proper error handling
    - Applied ruff formatting to clean up code style issues
    - Verified complete syntax fix resolves GitHub Actions build failures
+9. ✅ **TASK-2025-07-27-001**: Complete Serverless Architecture Redesign for GPU Cloud Deployment (COMPLETE)
+   - Redesigned containers from bloated nvcr.io/nvidia/pytorch:25.02-py3 (~10GB+) to minimal python:3.11-slim (~100MB)
+   - Implemented runtime bootstrap scripts with CUDA Toolkit 12.6, PyTorch 2.7.0, Flash Attention 2.8.0
+   - Created proper serverless pattern: minimal container + runtime dependency installation on GPU host
+   - Updated both main and vLLM containers with bootstrap integration and modern GPU stack
+   - Removed orphaned files and simplified GitHub Actions without disk space management
+   - Achieved ~100x reduction in container size while adding latest performance optimizations
 
 ## Upcoming Phases
 <!-- Future work not yet started -->

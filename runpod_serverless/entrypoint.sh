@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Entrypoint script for Runpod serverless container
-echo "Starting Higgs Audio V2 Runpod Serverless Container..."
+echo "🚀 Starting Higgs Audio V2 Runpod Serverless Container..."
 
 # Set environment variables if not already set
 export PYTHONPATH="${PYTHONPATH:-/app}"
@@ -12,27 +12,37 @@ export DEVICE="${DEVICE:-cuda}"
 export LOG_LEVEL="${LOG_LEVEL:-INFO}"
 
 # Check GPU availability
-echo "Checking GPU availability..."
+echo "🔍 Checking GPU availability..."
 if command -v nvidia-smi &> /dev/null; then
     nvidia-smi
-    echo "GPU detected"
+    echo "✓ GPU detected"
 else
-    echo "WARNING: nvidia-smi not found, running in CPU mode"
+    echo "⚠️ WARNING: nvidia-smi not found, running in CPU mode"
     export DEVICE="cpu"
 fi
 
 # Check disk space
-echo "Checking disk space..."
+echo "💾 Checking disk space..."
 df -h
 
-# Download models at runtime (not during build)
-echo "Downloading models at runtime..."
+# RUN BOOTSTRAP - Install all dependencies at runtime
+echo "🏗️ Running runtime bootstrap..."
+./bootstrap.sh || {
+    echo "❌ Bootstrap failed"
+    exit 1
+}
+
+# Bootstrap completed - now ready for model loading
+echo "✅ Bootstrap completed successfully!"
+
+# Download models at runtime (now that dependencies are installed)
+echo "📥 Downloading models at runtime..."
 python /app/download_models.py --model ${MODEL_NAME_OR_PATH} || {
-    echo "Warning: Model download failed, will attempt to download during model loading"
+    echo "⚠️ Warning: Model download failed, will attempt to download during model loading"
 }
 
 # Pre-load models
-echo "Pre-loading models..."
+echo "🧠 Pre-loading models..."
 python -c "
 from runpod_serverless.model_loader import initialize_models
 from runpod_serverless.config import get_config, print_config
@@ -48,12 +58,12 @@ print('Model initialization completed!')
 "
 
 if [ $? -ne 0 ]; then
-    echo "ERROR: Model initialization failed"
+    echo "❌ ERROR: Model initialization failed"
     exit 1
 fi
 
-echo "Models pre-loaded successfully!"
+echo "✅ Models pre-loaded successfully!"
 
 # Start the runpod serverless handler
-echo "Starting Runpod handler..."
+echo "🚀 Starting Runpod handler..."
 python -u -m runpod.serverless.start --handler_file runpod_serverless.handler

@@ -1,65 +1,51 @@
-# Use NVIDIA PyTorch container as base for vLLM
-FROM nvcr.io/nvidia/pytorch:25.02-py3
+# Minimal vLLM Dockerfile for GPU Cloud deployment
+# Only essential system dependencies - everything else happens at runtime
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
+# Install ONLY essential system dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libsndfile1 \
+    curl \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install only pip (no packages yet - happens at runtime)
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy ONLY the application code
+COPY boson_multimodal/ ./boson_multimodal/
+COPY examples/vllm/ ./vllm/
+COPY examples/voice_prompts/ ./voice_presets/
+COPY setup.py ./
+COPY README.md ./
+COPY download_models.py ./
+
+# Copy bootstrap and entrypoint scripts
+COPY examples/vllm/vllm-bootstrap.sh ./
+COPY examples/vllm/vllm-entrypoint.sh ./
+
+# Make scripts executable
+RUN chmod +x vllm-bootstrap.sh vllm-entrypoint.sh
+
+# Create temp directories
+RUN mkdir -p /tmp/higgs_audio /app/models /app/outputs
+
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV CUDA_VISIBLE_DEVICES=0
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    wget \
-    curl \
-    unzip \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Install vLLM for high-throughput inference
-RUN pip install --no-cache-dir vllm
-
-# Copy source code
-COPY . .
-
-# Install the package in editable mode
-# Prevent model downloads during build
-ENV HF_HUB_OFFLINE=1
-ENV TRANSFORMERS_OFFLINE=1
-RUN pip install -e .
-
-# Unset offline mode for runtime
-ENV HF_HUB_OFFLINE=
-ENV TRANSFORMERS_OFFLINE=
-
-# Create directory for models, voice samples, and presets
-RUN mkdir -p /app/models /app/outputs /app/voice_presets
-
-# Copy vLLM specific files
-COPY examples/vllm/ /app/vllm/
-COPY examples/voice_prompts/ /app/voice_presets/
-
-# Set up entry point for vLLM server
-COPY examples/vllm/vllm-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/vllm-entrypoint.sh
+# No pip installs, no model downloads, no heavy dependencies
+# Container should be ~100MB instead of 10GB+
 
 # Expose port for vLLM API server
 EXPOSE 8000
 
-# Set default command to start vLLM server
-ENTRYPOINT ["vllm-entrypoint.sh"]
-CMD ["--served-model-name", "higgs-audio-v2", \
-     "--model", "sruckh/higgs-audio-v2", \
-     "--audio-tokenizer-type", "sruckh/higgs-audio-v2", \
-     "--limit-mm-per-prompt", "audio=50", \
-     "--max-model-len", "8192", \
-     "--port", "8000", \
-     "--gpu-memory-utilization", "0.8", \
-     "--disable-mm-preprocessor-cache"]
+# Entry point runs bootstrap then starts vLLM server
+ENTRYPOINT ["./vllm-entrypoint.sh"]
