@@ -1,0 +1,60 @@
+# Ultra-thin Dockerfile for RunPod Serverless deployment - Higgs Audio V2
+# Optimized for <5GB container size limit
+
+# Use minimal Python base image
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies (minimal)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy serverless requirements
+COPY requirements.runpod ./
+
+# Copy essential package files first
+COPY setup.py setup.cfg pyproject.toml requirements.txt ./
+
+# Install Python dependencies with size optimization
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.runpod && \
+    pip install --no-cache-dir -e . --no-deps
+
+# Copy serverless handler
+COPY serverless_handler.py ./
+
+# Copy only essential source files (exclude models, docs, examples)
+COPY boson_multimodal/ /app/boson_multimodal/
+
+# Create directories for logs and temporary files
+RUN mkdir -p /app/logs /app/tmp
+
+# Set environment variables for optimization
+ENV MODEL_PATH=/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-generation-3B-base
+ENV TOKENIZER_PATH=/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-tokenizer
+ENV VOICE_PROMPTS_PATH=/runpod-volume/higgs_audio/voice_prompts
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Clean up unnecessary files
+RUN find /app -name "*.pyc" -delete && \
+    find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# Create non-root user
+RUN useradd -m -u 1000 runpod && \
+    chown -R runpod:runpod /app
+USER runpod
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)"
+
+# Expose port for RunPod
+EXPOSE 8080
+
+# Default command
+CMD ["python", "serverless_handler.py"]

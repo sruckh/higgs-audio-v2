@@ -1,0 +1,30 @@
+# Ultra-optimized RunPod Serverless Requirements - <5GB container
+# Core dependencies only for Higgs Audio V2 serverless deployment
+
+# Essential ML framework
+torch==2.0.1
+torchaudio==2.0.1
+transformers==4.35.0
+
+# RunPod serverless
+runpod==0.8.4
+
+# Audio processing (minimal)
+soundfile==0.12.1
+numpy==1.24.3
+
+# Logging and utilities
+loguru==0.7.2
+tqdm==4.66.1
+pyyaml==6.0.1
+requests==2.31.0
+
+# S3 integration (optional)
+boto3==1.34.0
+
+# Text processing
+jieba==0.42.1
+langid==1.1.6
+
+# Development and validation
+click==8.1.7
