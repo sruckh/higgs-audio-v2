@@ -1,0 +1,77 @@
+# Ultra-thin Dockerfile for RunPod Serverless deployment - Higgs Audio V2
+# Optimized for <5GB container size limit
+
+# Use minimal Python base image
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies (minimal)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy serverless requirements
+COPY requirements.runpod ./
+
+# Copy essential package files first
+COPY setup.py setup.cfg pyproject.toml requirements.txt ./
+
+# Install Python dependencies with size optimization
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    torch==2.0.1 \
+    torchaudio==2.0.1 \
+    transformers==4.35.0 \
+    accelerate==0.24.0 \
+    runpod==0.8.4 \
+    soundfile==0.12.1 \
+    loguru==0.7.2 \
+    click==8.1.7 \
+    langid==1.1.6 \
+    jieba==0.42.1 \
+    tqdm==4.66.1 \
+    pyyaml==6.0.1 \
+    boto3==1.34.0 \
+    s3fs==2023.12.2 \
+    numpy==1.24.3 \
+    scipy==1.10.1 \
+    librosa==0.10.1 && \
+    pip install --no-cache-dir -e .
+
+# Copy serverless handler
+COPY serverless_handler.py ./
+
+# Copy only essential source files (exclude models, docs, examples)
+COPY boson_multimodal/ /app/boson_multimodal/
+
+# Create directories for logs and temporary files
+RUN mkdir -p /app/logs /app/tmp
+
+# Set environment variables for optimization
+
+ENV MODEL_PATH=/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-generation-3B-base
+ENV TOKENIZER_PATH=/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-tokenizer
+ENV VOICE_PROMPTS_PATH=/runpod-volume/higgs_audio/voice_prompts
+
+
+# Clean up unnecessary files
+RUN find /app -name "*.pyc" -delete && \
+    find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# Create non-root user
+RUN useradd -m -u 1000 runpod && \
+    chown -R runpod:runpod /app
+USER runpod
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)"
+
+# Expose port for RunPod
+EXPOSE 8080
+
+# Default command
+CMD ["python", "serverless_handler.py"]

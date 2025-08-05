@@ -1,0 +1,19 @@
+{
+  "input": {
+    "transcript": "Hello world! This is a test of the Higgs Audio V2 serverless endpoint with voice cloning and tone control.",
+    "ref_audio": "belinda",
+    "scene_prompt": "quiet indoor setting with warm, friendly tone and clear articulation",
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.9,
+    "max_new_tokens": 2048,
+    "chunk_method": null,
+    "chunk_max_word_num": 200,
+    "chunk_max_num_turns": 1,
+    "ras_win_len": 7,
+    "ras_win_max_num_repeat": 2,
+    "seed": 123,
+    "s3_bucket": "my-audio-bucket",
+    "s3_key": "generation_123.wav"
+  }
+}
