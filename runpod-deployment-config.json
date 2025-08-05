@@ -1,0 +1,244 @@
+{
+  "higgs_audio_serverless_deployment": {
+    "name": "Higgs Audio V2 Serverless",
+    "version": "1.0.0",
+    "description": "Ultra-optimized serverless deployment for Higgs Audio V2 with voice cloning and LLM tone control",
+    
+    "image": {
+      "registry": "runpod",
+      "repository": "higgs-audio-serverless",
+      "tag": "ultra",
+      "dockerfile": "Dockerfile.runpod.ultra",
+      "requirements": "requirements.runpod.ultra"
+    },
+    
+    "compute": {
+      "gpu_type": "NVIDIA RTX A4000",
+      "gpu_count": 1,
+      "gpu_memory_gb": 16,
+      "vram_optimization": true
+    },
+    
+    "container": {
+      "size_limit_gb": 5,
+      "estimated_actual_size_gb": 4.2,
+      "startup_timeout_seconds": 300,
+      "request_timeout_seconds": 600,
+      "idle_timeout_seconds": 180,
+      "health_check_path": "/health",
+      "health_check_interval_seconds": 60,
+      "health_check_timeout_seconds": 5,
+      "health_check_retries": 2
+    },
+    
+    "network_volume": {
+      "name": "higgs-audio-models",
+      "size_gb": 100,
+      "mount_path": "/runpod-volume/higgs_audio",
+      "model_paths": {
+        "main_model": "/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-generation-3B-base",
+        "tokenizer": "/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-tokenizer",
+        "voice_prompts": "/runpod-volume/higgs_audio/voice_prompts"
+      }
+    },
+    
+    "environment_variables": {
+      "MODEL_PATH": "/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-generation-3B-base",
+      "TOKENIZER_PATH": "/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-tokenizer",
+      "VOICE_PROMPTS_PATH": "/runpod-volume/higgs_audio/voice_prompts",
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONOPTIMIZE": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "TORCH_HOME": "/tmp/torch",
+      "TRANSFORMERS_CACHE": "/tmp/transformers",
+      "HF_HOME": "/tmp/huggingface"
+    },
+    
+    "ports": [
+      {
+        "container_port": 8080,
+        "protocol": "HTTP",
+        "name": "api"
+      }
+    ],
+    
+    "api_endpoints": {
+      "health": {
+        "path": "/health",
+        "method": "GET/POST",
+        "description": "Health check endpoint"
+      },
+      "generate": {
+        "path": "/",
+        "method": "POST",
+        "description": "Main audio generation endpoint"
+      }
+    },
+    
+    "generation_parameters": {
+      "required": ["transcript", "ref_audio"],
+      "optional": {
+        "scene_prompt": {
+          "type": "string",
+          "description": "Scene description for LLM tone control",
+          "default": "neutral speaking environment"
+        },
+        "temperature": {
+          "type": "float",
+          "min": 0.0,
+          "max": 2.0,
+          "default": 1.0
+        },
+        "top_k": {
+          "type": "integer",
+          "min": 1,
+          "max": 100,
+          "default": 50
+        },
+        "top_p": {
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "default": 0.95
+        },
+        "max_new_tokens": {
+          "type": "integer",
+          "min": 1,
+          "max": 4096,
+          "default": 2048
+        },
+        "s3_bucket": {
+          "type": "string",
+          "description": "S3 bucket for audio upload (optional)"
+        },
+        "s3_key": {
+          "type": "string",
+          "description": "S3 key for audio upload (optional)"
+        }
+      }
+    },
+    
+    "aws_integration": {
+      "s3_upload_enabled": true,
+      "required_env_vars": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY"
+      ],
+      "optional_env_vars": [
+        "AWS_DEFAULT_REGION"
+      ],
+      "default_region": "us-east-1"
+    },
+    
+    "voice_cloning": {
+      "one_shot_capability": true,
+      "available_voices": [
+        "belinda",
+        "chadwick", 
+        "daffy",
+        "elsa",
+        "jorts"
+      ],
+      "custom_voice_support": true,
+      "voice_customization": {
+        "tone": "controlled via scene_prompt",
+        "accent": "inherited from reference audio",
+        "speed": "adaptive based on context",
+        "emotion": "inferred from scene description"
+      }
+    },
+    
+    "performance": {
+      "expected_latency_ms": {
+        "model_loading": 30000,
+        "audio_generation_per_minute": 2000,
+        "s3_upload": 1000
+      },
+      "concurrent_requests": {
+        "max_concurrent": 2,
+        "limitation": "GPU memory dependent"
+      },
+      "memory_usage": {
+        "container_ram_gb": 2,
+        "gpu_memory_gb": 8,
+        "total_estimated_gb": 10
+      }
+    },
+    
+    "monitoring": {
+      "metrics_collection": true,
+      "health_monitoring": true,
+      "error_tracking": true,
+      "log_level": "INFO",
+      "prometheus_integration": true,
+      "prometheus_port": 9090
+    },
+    
+    "optimizations": {
+      "container_size": [
+        "Ultra-slim Python base image",
+        "Minimal dependencies only",
+        "Aggressive cleanup of build artifacts",
+        "Excluded documentation and examples",
+        "No development tools included"
+      ],
+      "performance": [
+        "BFloat16 precision for memory efficiency",
+        "Static KV cache optimization",
+        "CUDA graph compilation",
+        "Lazy loading of models",
+        "Aggressive memory cleanup"
+      ],
+      "memory": [
+        "Network volume model storage",
+        "Model caching with timeout",
+        "Garbage collection between requests",
+        "CUDA memory optimization"
+      ]
+    },
+    
+    "deployment_checklist": [
+      "✅ RunPod CLI installed and configured",
+      "✅ Docker image built and pushed to registry",
+      "✅ Network volume created and models uploaded",
+      "✅ Environment variables configured",
+      "✅ AWS credentials available (for S3 upload)",
+      "✅ Container size under 5GB limit",
+      "✅ Health check endpoint functional",
+      "✅ Model loading verified",
+      "✅ Audio generation tested",
+      "✅ S3 upload capability tested"
+    ],
+    
+    "troubleshooting": {
+      "common_issues": {
+        "container_size_too_large": "Use optimized Dockerfile and requirements",
+        "model_loading_failure": "Check network volume permissions and paths",
+        "s3_upload_failure": "Verify AWS credentials and bucket access",
+        "high_memory_usage": "Enable aggressive memory cleanup",
+        "request_timeout": "Increase timeout parameters for long audio"
+      },
+      "debug_commands": [
+        "runpodctl get serverless <deployment-id>",
+        "runpodctl logs serverless <deployment-id>",
+        "docker images | grep higgs-audio",
+        "df -h / (check disk space)"
+      ]
+    },
+    
+    "security": {
+      "best_practices": [
+        "Use non-root user in container",
+        "No hardcoded credentials",
+        "Environment variables for sensitive data",
+        "Minimal attack surface with slim base image",
+        "Regular security updates for dependencies"
+      ],
+      "secrets_management": {
+        "s3_credentials": "via environment variables only",
+        "no sensitive_data_in_logs": "automatic sanitization",
+        "secure_credential_handling": "RunPod injection only"
+      }
+    }
+  }
+}

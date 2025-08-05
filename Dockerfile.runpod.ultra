@@ -1,0 +1,79 @@
+# Ultra-optimized Dockerfile for RunPod Serverless deployment - Higgs Audio V2
+# Target: <4GB container size with aggressive optimizations
+
+# Use minimal Python base image
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy ultra-optimized requirements
+COPY requirements.runpod.ultra ./
+
+# Copy essential package files only
+COPY setup.py pyproject.toml ./
+
+# Python package optimization
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONOPTIMIZE=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Install only essential Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --upgrade-strategy only-if-needed \
+        --prefer-binary --no-warn-conflicts \
+        torch==2.0.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir --upgrade-strategy only-if-needed \
+        --prefer-binary --no-warn-conflicts \
+        torchaudio==2.0.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.runpod.ultra
+
+# Install our package with minimal dependencies
+COPY setup.py ./
+COPY boson_multimodel/ boson_multimodal/
+RUN pip install --no-cache-dir -e . --no-deps
+
+# Copy optimized serverless handler
+COPY serverless_handler_optimized.py ./serverless_handler.py
+
+# Clean up files aggressively
+RUN rm -f requirements.runpod.ultra setup.py && \
+    find /app -name "*.pyc" -delete -print 2>/dev/null || true && \
+    find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    rm -rf /app/examples /app/tests /app/docs /app/*.md 2>/dev/null || true && \
+    rm -rf /root/.cache /tmp/* 2>/dev/null || true && \
+    find /root -name "*.pyc" -delete -print 2>/dev/null || true && \
+    find /root -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# Create non-root user with minimal permissions
+RUN useradd -m -u 1000 -s /bin/bash runpod && \
+    chown -R runpod:runpod /app && \
+    chmod -R 755 /app 2>/dev/null || true
+USER runpod
+
+# Set environment variables for RunPod
+ENV MODEL_PATH=/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-generation-3B-base
+ENV TOKENIZER_PATH=/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-tokenizer
+ENV VOICE_PROMPTS_PATH=/runpod-volume/higgs_audio/voice_prompts
+ENV RUNPOD_PUBLIC_PORT=8080
+ENV RUNPOD_CONTAINER_PORT=8080
+
+# Health check with timeout optimization
+HEALTHCHECK --interval=60s --timeout=5s --start-period=120s --retries=2 \
+    CMD python -c "import sys; import os; sys.exit(0 if os.path.exists('/app/serverless_handler.py') else 1)"
+
+# Expose port
+EXPOSE 8080
+
+# Set entrypoint with optimized startup
+ENTRYPOINT ["python", "-u"]
+CMD ["serverless_handler.py"]
