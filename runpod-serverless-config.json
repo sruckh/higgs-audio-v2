@@ -8,8 +8,8 @@
   "network_volume_mount_path": "/runpod-volume",
   "ports": "8080/http",
   "env": {
-    "MODEL_PATH": "/runpod-volume/bosonai/higgs-audio-v2-generation-3B-base",
-    "TOKENIZER_PATH": "/runpod-volume/bosonai/higgs-audio-v2-tokenizer",
+    "MODEL_PATH": "/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-generation-3B-base",
+    "TOKENIZER_PATH": "/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-tokenizer",
     "AWS_ACCESS_KEY_ID": "${AWS_ACCESS_KEY_ID}",
     "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_ACCESS_KEY}",
     "AWS_DEFAULT_REGION": "${AWS_DEFAULT_REGION:-us-east-1}",

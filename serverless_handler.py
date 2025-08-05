@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import boto3
+import re
 import soundfile as sf
 import torch
 from loguru import logger
@@ -26,7 +27,7 @@ from boson_multimodal.audio_processing.higgs_audio_tokenizer import load_higgs_a
 # Model imports
 
 
-# Import generation utilities
+# Import generation utilities (needs sys.path modification first)
 sys.path.append("/app/examples")
 from generation import (
     HiggsAudioModelClient,
@@ -495,7 +496,7 @@ class ServerlessHandler:
 handler = ServerlessHandler()
 
 
-async def handler(event: dict) -> dict:
+async def handler_function(event: dict) -> dict:
     """Main handler function for RunPod serverless"""
 
     # Handle different request types
@@ -511,7 +512,7 @@ def run_handler(event: dict) -> dict:
     import asyncio
 
     try:
-        return asyncio.run(handler(event))
+        return asyncio.run(handler_function(event))
     except Exception as e:
         logger.error(f"Handler execution failed: {e}")
         return {"output": GenerationResponse(success=False, error=f"Handler execution failed: {str(e)}").__dict__}
