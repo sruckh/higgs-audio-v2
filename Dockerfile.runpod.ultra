@@ -31,11 +31,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir --upgrade-strategy only-if-needed \
         --prefer-binary --no-warn-conflicts \
-        torch==2.0.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir --upgrade-strategy only-if-needed \
-        --prefer-binary --no-warn-conflicts \
-        torchaudio==2.0.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir -r requirements.runpod.ultra
+        torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu126 && \
+    pip install --no-cache-dir -r requirements.runpod.ultra && \
+    python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA version: {torch.version.cuda}'); print(f'CUDA available: {torch.cuda.is_available()}'); print(f'CUDA device count: {torch.cuda.device_count()}')"
 
 # Install our package with minimal dependencies
 COPY setup.py ./

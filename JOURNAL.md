@@ -1,5 +1,14 @@
 # Engineering Journal
 
+## 2025-08-05 12:30
+
+### Docker Build Dependency Conflict Resolution |TASK:TASK-2025-08-05-006|
+- **What**: Resolved critical PyTorch dependency conflict in Docker build for RunPod serverless deployment
+- **Why**: Docker build was failing due to version mismatch between torch==2.0.1 and torchaudio==2.0.1, preventing successful container creation
+- **How**: Updated both Dockerfile.runpod.ultra and requirements.runpod.ultra to use compatible PyTorch 2.6.0 with CUDA 12.6 support, added CUDA version verification logging
+- **Issues**: torchaudio 2.0.1 requires torch==2.0.0, but Dockerfile was trying to install torch==2.0.1, causing dependency resolution failure
+- **Result**: Docker build will now succeed with compatible PyTorch stack and provide CUDA version verification in build logs
+
 ## 2025-08-05 06:15
 
 ### Code Quality and Deployment Readiness Analysis |TASK:TASK-2025-08-05-005|
