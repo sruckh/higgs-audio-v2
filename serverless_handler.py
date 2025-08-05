@@ -5,42 +5,36 @@ Ultra-thin serverless endpoint for audio generation with voice cloning,
 LLM tone control, and S3 output storage.
 """
 
+import gc
+import json
 import os
 import sys
-import json
 import time
-import gc
-import torch
-import soundfile as sf
-import boto3
+from dataclasses import dataclass
 from io import BytesIO
-from loguru import logger
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
 from pathlib import Path
+from typing import Any
+
+import boto3
+import soundfile as sf
+import torch
+from loguru import logger
+
+from boson_multimodal.audio_processing.higgs_audio_tokenizer import load_higgs_audio_tokenizer
+
 
 # Model imports
-from boson_multimodal.model.higgs_audio import HiggsAudioConfig, HiggsAudioModel
-from boson_multimodal.data_collator.higgs_audio_collator import HiggsAudioSampleCollator
-from boson_multimodal.audio_processing.higgs_audio_tokenizer import load_higgs_audio_tokenizer
-from boson_multimodal.dataset.chatml_dataset import (
-    ChatMLDatasetSample,
-    prepare_chatml_sample,
-)
-from boson_multimodal.data_types import Message, ChatMLSample, AudioContent, TextContent
-from boson_multimodal.model.higgs_audio.utils import revert_delay_pattern
+
 
 # Import generation utilities
 sys.path.append("/app/examples")
 from generation import (
     HiggsAudioModelClient,
-    prepare_generation_context,
-    prepare_chunk_text,
     normalize_chinese_punctuation,
-    AUDIO_PLACEHOLDER_TOKEN,
-    MULTISPEAKER_DEFAULT_SYSTEM_MESSAGE,
-    _build_system_message_with_audio_prompt,
+    prepare_chunk_text,
+    prepare_generation_context,
 )
+
 
 # Configuration
 MODEL_PATH = os.getenv("MODEL_PATH", "/runpod-volume/higgs_audio/bosonai/higgs-audio-v2-generation-3B-base")
@@ -62,20 +56,20 @@ class GenerationRequest:
     """Request data model"""
 
     transcript: str
-    ref_audio: Optional[str] = None
-    scene_prompt: Optional[str] = None
+    ref_audio: str | None = None
+    scene_prompt: str | None = None
     temperature: float = 1.0
     top_k: int = 50
     top_p: float = 0.95
     max_new_tokens: int = 2048
-    chunk_method: Optional[str] = None
+    chunk_method: str | None = None
     chunk_max_word_num: int = 200
     chunk_max_num_turns: int = 1
     ras_win_len: int = 7
     ras_win_max_num_repeat: int = 2
-    seed: Optional[int] = None
-    s3_bucket: Optional[str] = None
-    s3_key: Optional[str] = None
+    seed: int | None = None
+    s3_bucket: str | None = None
+    s3_key: str | None = None
 
 
 @dataclass
@@ -83,13 +77,13 @@ class GenerationResponse:
     """Response data model"""
 
     success: bool
-    audio_url: Optional[str] = None
-    duration_seconds: Optional[float] = None
+    audio_url: str | None = None
+    duration_seconds: float | None = None
     sample_rate: int = 24000
-    text_output: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-    voice_suggestions: Optional[List[Dict[str, str]]] = None
+    text_output: str | None = None
+    metadata: dict[str, Any] | None = None
+    error: str | None = None
+    voice_suggestions: list[dict[str, str]] | None = None
 
 
 class ModelManager:
@@ -160,7 +154,7 @@ class ModelManager:
                             }
                         )
 
-    def get_voice_suggestions(self) -> List[Dict[str, str]]:
+    def get_voice_suggestions(self) -> list[dict[str, str]]:
         """Get available voice suggestions"""
         if _voice_prompts_cache is None:
             self._load_voice_prompts()
@@ -192,7 +186,7 @@ class ModelManager:
         self.last_cleanup = current_time
         logger.info("Memory cleanup completed")
 
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         """Get model status and information"""
         return {
             "model_path": self.model_path,
@@ -263,7 +257,7 @@ class AudioGenerator:
         self.model_manager = model_manager
         self.voice_prompts_path = VOICE_PROMPTS_PATH
 
-    async def generate_audio(self, request: GenerationRequest) -> Dict[str, Any]:
+    async def generate_audio(self, request: GenerationRequest) -> dict[str, Any]:
         """Generate audio with given parameters"""
 
         # Normalize transcript
@@ -528,7 +522,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1:
-        with open(sys.argv[1], "r") as f:
+        with open(sys.argv[1]) as f:
             test_event = json.load(f)
             result = run_handler(test_event)
             print(json.dumps(result, indent=2))

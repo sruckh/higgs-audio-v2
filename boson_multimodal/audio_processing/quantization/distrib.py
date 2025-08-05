@@ -38,7 +38,7 @@ def _is_complex_or_float(tensor):
     return torch.is_floating_point(tensor) or torch.is_complex(tensor)
 
 
-def _check_number_of_params(params: tp.List[torch.Tensor]):
+def _check_number_of_params(params: list[torch.Tensor]):
     # utility function to check that the number of params in all workers is the same,
     # and thus avoid a deadlock with distributed all reduce.
     if not is_distributed() or not params:
@@ -108,7 +108,7 @@ def sync_grad(params):
         p.grad.data /= world_size()
 
 
-def average_metrics(metrics: tp.Dict[str, float], count=1.0):
+def average_metrics(metrics: dict[str, float], count=1.0):
     """Average a dictionary of metrics across all workers, using the optional
     `count` as unormalized weight.
     """

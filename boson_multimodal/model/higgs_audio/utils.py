@@ -1,12 +1,13 @@
 import contextlib
 from contextlib import contextmanager
-from functools import wraps
+
 import torch
 from transformers.integrations import is_deepspeed_available
 
+
 if is_deepspeed_available():
-    from deepspeed.utils import groups as deepspeed_groups
     from deepspeed.sequence.layer import _SeqAllToAll
+    from deepspeed.utils import groups as deepspeed_groups
 else:
     deepspeed_groups = None
     _SeqAllToAll = None

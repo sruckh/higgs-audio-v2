@@ -6,9 +6,8 @@
 
 """Residual vector quantizer implementation."""
 
-from dataclasses import dataclass, field
 import math
-import typing as tp
+from dataclasses import dataclass, field
 
 import torch
 from torch import nn
@@ -22,7 +21,7 @@ class QuantizedResult:
     quantized: torch.Tensor
     codes: torch.Tensor
     bandwidth: torch.Tensor  # bandwidth in kb/s used, per batch item.
-    penalty: tp.Optional[torch.Tensor] = None
+    penalty: torch.Tensor | None = None
     metrics: dict = field(default_factory=dict)
 
 
@@ -71,7 +70,7 @@ class ResidualVectorQuantizer(nn.Module):
             threshold_ema_dead_code=self.threshold_ema_dead_code,
         )
 
-    def forward(self, x: torch.Tensor, sample_rate: int, bandwidth: tp.Optional[float] = None):  # -> QuantizedResult:
+    def forward(self, x: torch.Tensor, sample_rate: int, bandwidth: float | None = None):  # -> QuantizedResult:
         """Residual vector quantization on the given input tensor.
         Args:
             x (torch.Tensor): Input tensor.
@@ -89,7 +88,7 @@ class ResidualVectorQuantizer(nn.Module):
         return quantized, codes, bw, torch.mean(commit_loss)
         # return QuantizedResult(quantized, codes, bw, penalty=torch.mean(commit_loss))
 
-    def get_num_quantizers_for_bandwidth(self, sample_rate: int, bandwidth: tp.Optional[float] = None) -> int:
+    def get_num_quantizers_for_bandwidth(self, sample_rate: int, bandwidth: float | None = None) -> int:
         """Return n_q based on specified target bandwidth."""
         bw_per_q = self.get_bandwidth_per_quantizer(sample_rate)
         n_q = self.n_q
@@ -101,7 +100,7 @@ class ResidualVectorQuantizer(nn.Module):
         """Return bandwidth per quantizer for a given input sample rate."""
         return math.log2(self.bins) * sample_rate / 1000
 
-    def encode(self, x: torch.Tensor, sample_rate: int, bandwidth: tp.Optional[float] = None) -> torch.Tensor:
+    def encode(self, x: torch.Tensor, sample_rate: int, bandwidth: float | None = None) -> torch.Tensor:
         """Encode a given input tensor with the specified sample rate at the given bandwidth.
         The RVQ encode method sets the appropriate number of quantizer to use
         and returns indices for each quantizer.

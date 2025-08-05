@@ -1,19 +1,18 @@
+import json
+import multiprocessing as mp
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, fields
+from typing import Union
+
 import dacite
+import numpy as np
 import pandas as pd
 import torch
-import json
-
-import numpy as np
-import multiprocessing as mp
-
-from dataclasses import dataclass, fields
-from abc import ABC, abstractmethod
-from typing import Union, List, Dict, Optional
-
-from ..data_types import ChatMLSample, TextContent, AudioContent
-from ..constants import AUDIO_IN_TOKEN, AUDIO_OUT_TOKEN
-
 from loguru import logger
+
+from ..constants import AUDIO_IN_TOKEN, AUDIO_OUT_TOKEN
+from ..data_types import AudioContent, ChatMLSample, TextContent
+
 
 # Whisper processor, 30 sec -> 3000 features
 # Then we divide 4 in the audio towker, we decrease 3000 features to 750, which gives 25 Hz
@@ -39,11 +38,11 @@ class ChatMLDatasetSample:
     audio_speaker_indices: (
         torch.LongTensor
     )  # Shape (num_audios,) -1 means unknown speaker: The speaker indices for each audio.
-    audio_label_ids_concat: Optional[torch.LongTensor] = (
+    audio_label_ids_concat: torch.LongTensor | None = (
         None  # Shape (num_codebooks, audio_seq_len): The audio tokens that are concatenated.
     )
     # Here `audio_seq_len` is the length of the concatenated audio tokens.`
-    reward: Optional[float] = None
+    reward: float | None = None
 
     def num_audios(self):
         return max(len(self.audio_waveforms_start), len(self.audio_ids_start))
@@ -128,10 +127,10 @@ class ChatMLDatasetSample:
     @classmethod
     def merge(
         cls,
-        samples: List["ChatMLDatasetSample"],
+        samples: list["ChatMLDatasetSample"],
         eos_token_id: int,
         ignore_index: int,
-        padding_size: Optional[int] = None,
+        padding_size: int | None = None,
     ) -> "ChatMLDatasetSample":
         """Merges a list of ChatMLDatasetSample instances, inserting eos_token_id and ignore_index between them, and adjusting offsets for audio_ids_start and audio_waveforms_start.
 
@@ -275,8 +274,8 @@ class ChatMLDatasetSample:
 
 @dataclass
 class RankedChatMLDatasetSampleTuple:
-    samples: List[ChatMLDatasetSample]
-    scores: List[float]
+    samples: list[ChatMLDatasetSample]
+    scores: list[float]
 
     def max_score_sample(self) -> ChatMLDatasetSample:
         idx = self.scores.index(max(self.scores))
@@ -304,7 +303,7 @@ class ChatMLDatasetStorageSample:
 
 # TODO(sxjscience): We need to revist the logic about parsing speaker ids.
 # Currently, we assume that the speaker id is stored at the "misc" field in ChatMLSample.
-def prepare_chatml_sample(sample: Union[ChatMLSample, Dict], tokenizer):
+def prepare_chatml_sample(sample: Union[ChatMLSample, dict], tokenizer):
     """Preprocess the ChatML sample to get the tokens for the text part.
 
     Args:
@@ -416,7 +415,7 @@ def prepare_chatml_sample(sample: Union[ChatMLSample, Dict], tokenizer):
                     if role == "user" or role == "system":
                         # Add the text tokens
                         text_tokens = tokenizer.encode(
-                            f"<|audio_bos|><|AUDIO|><|audio_eos|>",
+                            "<|audio_bos|><|AUDIO|><|audio_eos|>",
                             add_special_tokens=False,
                         )
                         input_tokens.extend(text_tokens)
@@ -424,7 +423,7 @@ def prepare_chatml_sample(sample: Union[ChatMLSample, Dict], tokenizer):
                     elif role == "assistant":
                         # Add the text tokens for audio-out part.
                         text_tokens = tokenizer.encode(
-                            f"<|audio_out_bos|><|AUDIO_OUT|><|audio_eos|>",
+                            "<|audio_out_bos|><|AUDIO_OUT|><|audio_eos|>",
                             add_special_tokens=False,
                         )
                         input_tokens.extend(text_tokens)
@@ -529,5 +528,5 @@ class IterableDatasetInterface(ABC):
 @dataclass
 class DatasetInfo:
     dataset_type: str
-    group_type: Optional[str] = None
-    mask_text: Optional[bool] = None  # Whether to mask the text tokens for pretraining samples.
+    group_type: str | None = None
+    mask_text: bool | None = None  # Whether to mask the text tokens for pretraining samples.

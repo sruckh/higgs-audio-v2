@@ -2,23 +2,25 @@
 # Licensed under MIT License
 # Modifications by BosonAI
 
+import json
 import math
 import os
+from collections.abc import Sequence
+from typing import Union
+
+import librosa
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Union, Sequence
-import numpy as np
-from transformers import AutoModel
 import torchaudio
-import json
-import librosa
 from huggingface_hub import snapshot_download
-
+from transformers import AutoModel
 from vector_quantize_pytorch import ResidualFSQ
+
 from .descriptaudiocodec.dac.model import dac as dac2
 from .quantization.vq import ResidualVectorQuantizer
-from .semantic_module import Encoder, Decoder
+from .semantic_module import Decoder, Encoder
 
 
 class EncodedResult:
@@ -46,7 +48,7 @@ class HiggsAudioTokenizer(nn.Module):
         n_filters: int = 32,
         D: int = 128,
         target_bandwidths: Sequence[Union[int, float]] = [1, 1.5, 2, 4, 6],
-        ratios: Sequence[int] = [8, 5, 4, 2],  #  downsampling by 320
+        ratios: Sequence[int] = [8, 5, 4, 2],  # downsampling by 320
         sample_rate: int = 16000,
         bins: int = 1024,
         n_q: int = 8,
@@ -260,7 +262,7 @@ class HiggsAudioTokenizer(nn.Module):
             vq_code = encoder_outputs.audio_codes[0]
         return vq_code
 
-    def _xcodec_encode(self, x: torch.Tensor, target_bw: Optional[int] = None) -> torch.Tensor:
+    def _xcodec_encode(self, x: torch.Tensor, target_bw: int | None = None) -> torch.Tensor:
         bw = target_bw
 
         e_semantic_input = self.get_regress_target(x).detach()

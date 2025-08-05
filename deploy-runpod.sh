@@ -1,9 +1,15 @@
 #!/bin/bash
 
-# RunPod Serverless Deployment Script for Higgs Audio V2
-# This script sets up and deploys the Higgs Audio model as a RunPod serverless endpoint
-
-set -e
+# DEPRECATED: RunPod Serverless Deployment Script for Higgs Audio V2
+# ====================================================================
+# ⚠️  WARNING: This script is NOT for RunPod Serverless!
+# 
+# RunPod Serverless does NOT build containers locally.
+# This script is for traditional RunPod Jobs/Servers only.
+#
+# For RunPod Serverless deployment, see:
+# 📖 docs/runpod-serverless-guide.md
+# 🚀 .github/workflows/build-runpod-container.yml
 
 # Colors for output
 RED='\033[0;31m'
@@ -237,7 +243,12 @@ main() {
     echo "   - See README.md for detailed instructions"
     echo "   - Check examples/voice_prompts/ for available voices"
     echo ""
-    echo -e "${YELLOW}💡 Tip: Ensure your RunPod network volume has the models before deploying${NC}"
+    echo -e "${YELLOW}💡 Tip: Ensure your RunPod network volume has the models before deploying
+    echo ""
+    echo -e "${RED}🚨 IMPORTANT: For RunPod Serverless deployment, use:${NC}"
+    echo "   📖 docs/runpod-serverless-guide.md"
+    echo "   🚀 GitHub Actions automated build pipeline"
+    echo "   🔗 https://github.com/your-repo/actions/workflows/build-runpod-container.yml"${NC}"
 }
 
 # Run main function

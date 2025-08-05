@@ -5,29 +5,25 @@ This module provides a RunPod-compatible HTTP API server for Higgs Audio V2
 with serverless deployment, S3 integration, and one-shot voice cloning.
 """
 
-import asyncio
-import json
-import os
-import traceback
-from typing import Dict, Any, Optional
-from datetime import datetime
 import base64
 import io
-import soundfile as sf
+import os
+import traceback
+from typing import Any
 
-import torch
 import boto3
-from loguru import logger
 import runpod
+import soundfile as sf
+import torch
+from loguru import logger
 from runpod.serverless.utils.rp_validator import validate
 
-from boson_multimodal.serve.serve_engine import HiggsAudioServeEngine, HiggsAudioResponse
-from boson_multimodal.data_types import Message, ChatMLSample, AudioContent, TextContent
 from boson_multimodal.audio_processing.higgs_audio_tokenizer import load_higgs_audio_tokenizer
-from boson_multimodal.model.higgs_audio import HiggsAudioConfig, HiggsAudioModel
 from boson_multimodal.data_collator.higgs_audio_collator import HiggsAudioSampleCollator
-from boson_multimodal.dataset.chatml_dataset import prepare_chatml_sample
-from boson_multimodal.serve.voice_prompts import VoicePromptManager, LLMToneController
+from boson_multimodal.data_types import ChatMLSample, Message, TextContent
+from boson_multimodal.model.higgs_audio import HiggsAudioModel
+from boson_multimodal.serve.serve_engine import HiggsAudioServeEngine
+from boson_multimodal.serve.voice_prompts import LLMToneController, VoicePromptManager
 
 
 class RunPodHiggsAudioServer:
@@ -98,7 +94,7 @@ class RunPodHiggsAudioServer:
             self.model.eval()
 
             # Load tokenizer and config
-            from transformers import AutoTokenizer, AutoConfig
+            from transformers import AutoConfig, AutoTokenizer
 
             self.tokenizer = AutoTokenizer.from_pretrained(model_path)
             config = AutoConfig.from_pretrained(model_path)
@@ -190,7 +186,7 @@ class RunPodHiggsAudioServer:
         if ref_audio:
             voice_path = self._get_voice_prompt_path(ref_audio)
             if voice_path:
-                with open(voice_path.replace(".wav", ".txt"), "r", encoding="utf-8") as f:
+                with open(voice_path.replace(".wav", ".txt"), encoding="utf-8") as f:
                     ref_text = f.read().strip()
 
                 ref_message = {"role": "user", "content": f"[SPEAKER:{ref_audio}] {ref_text}"}
@@ -221,7 +217,7 @@ server = RunPodHiggsAudioServer()
 
 
 @runpod.serverless.func
-def handler(event: Dict[str, Any]) -> Dict[str, Any]:
+def handler(event: dict[str, Any]) -> dict[str, Any]:
     """
     Main RunPod serverless handler function.
 

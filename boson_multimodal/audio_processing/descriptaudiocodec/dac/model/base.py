@@ -9,6 +9,7 @@ import tqdm
 from audiotools import AudioSignal
 from torch import nn
 
+
 SUPPORTED_VERSIONS = ["1.0.0"]
 
 

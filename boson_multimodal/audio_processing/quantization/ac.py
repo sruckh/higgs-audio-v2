@@ -10,6 +10,7 @@ import io
 import math
 import random
 import typing as tp
+
 import torch
 
 from ..binary import BitPacker, BitUnpacker
@@ -100,8 +101,8 @@ class ArithmeticCoder:
         self.low: int = 0
         self.high: int = 0
         self.max_bit: int = -1
-        self._dbg: tp.List[tp.Any] = []
-        self._dbg2: tp.List[tp.Any] = []
+        self._dbg: list[tp.Any] = []
+        self._dbg2: list[tp.Any] = []
 
     @property
     def delta(self) -> int:
@@ -190,8 +191,8 @@ class ArithmeticDecoder:
         self.max_bit: int = -1
         self.unpacker = BitUnpacker(bits=1, fo=fo)  # we pull single bits at a time.
         # Following is for debugging
-        self._dbg: tp.List[tp.Any] = []
-        self._dbg2: tp.List[tp.Any] = []
+        self._dbg: list[tp.Any] = []
+        self._dbg2: list[tp.Any] = []
         self._last: tp.Any = None
 
     @property
@@ -214,7 +215,7 @@ class ArithmeticDecoder:
             else:
                 break
 
-    def pull(self, quantized_cdf: torch.Tensor) -> tp.Optional[int]:
+    def pull(self, quantized_cdf: torch.Tensor) -> int | None:
         """Pull a symbol, reading as many bits from the stream as required.
         This returns `None` when the stream has been exhausted.
 

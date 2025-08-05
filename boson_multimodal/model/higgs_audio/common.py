@@ -1,5 +1,4 @@
 from torch import nn
-
 from transformers.modeling_utils import PreTrainedModel
 
 from .configuration_higgs_audio import HiggsAudioConfig

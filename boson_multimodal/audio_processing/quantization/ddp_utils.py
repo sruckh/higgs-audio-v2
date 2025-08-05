@@ -6,12 +6,12 @@ from datetime import datetime
 import numpy as np
 import torch
 import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel
-from torch.nn.parallel.distributed import _find_tensors
 import torch.optim
 import torch.utils.data
-from packaging import version
 from omegaconf import OmegaConf
+from packaging import version
+from torch.nn.parallel import DistributedDataParallel
+from torch.nn.parallel.distributed import _find_tensors
 
 
 def set_random_seed(seed):
@@ -93,11 +93,11 @@ class DDP(DistributedDataParallel):
                     self.reducer.prepare_for_backward([])
         else:
             from torch.nn.parallel.distributed import (
-                logging,
                 Join,
                 _DDPSink,
                 _tree_flatten_with_rref,
                 _tree_unflatten_with_rref,
+                logging,
             )
 
             with torch.autograd.profiler.record_function("DistributedDataParallel.forward"):

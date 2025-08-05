@@ -2,10 +2,10 @@
 Voice prompt mapping and management for RunPod serverless deployment
 """
 
-import os
 import logging
-from typing import Dict, Optional, List
+import os
 from dataclasses import dataclass
+
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class VoicePrompt:
     text_file: str
     language: str
     gender: str
-    characteristics: List[str]
+    characteristics: list[str]
 
 
 class VoicePromptManager:
@@ -30,7 +30,7 @@ class VoicePromptManager:
 
     def __init__(self, voice_prompts_path: str = "/app/voice_prompts"):
         self.voice_prompts_path = voice_prompts_path
-        self.voice_prompts: Dict[str, VoicePrompt] = {}
+        self.voice_prompts: dict[str, VoicePrompt] = {}
         self._load_voice_prompts()
 
     def _load_voice_prompts(self):
@@ -191,15 +191,15 @@ class VoicePromptManager:
 
         logger.info(f"Loaded {len(self.voice_prompts)} voice prompts")
 
-    def get_available_voices(self) -> List[str]:
+    def get_available_voices(self) -> list[str]:
         """Get list of available voice names."""
         return list(self.voice_prompts.keys())
 
-    def get_voice_prompt(self, voice_name: str) -> Optional[VoicePrompt]:
+    def get_voice_prompt(self, voice_name: str) -> VoicePrompt | None:
         """Get voice prompt configuration by name."""
         return self.voice_prompts.get(voice_name)
 
-    def get_voice_text(self, voice_name: str) -> Optional[str]:
+    def get_voice_text(self, voice_name: str) -> str | None:
         """Get reference text for voice cloning."""
         voice_prompt = self.get_voice_prompt(voice_name)
         if not voice_prompt:
@@ -207,13 +207,13 @@ class VoicePromptManager:
 
         text_path = os.path.join(self.voice_prompts_path, voice_prompt.text_file)
         try:
-            with open(text_path, "r", encoding="utf-8") as f:
+            with open(text_path, encoding="utf-8") as f:
                 return f.read().strip()
         except Exception as e:
             logger.error(f"Failed to read voice text for {voice_name}: {e}")
             return None
 
-    def get_voice_audio_path(self, voice_name: str) -> Optional[str]:
+    def get_voice_audio_path(self, voice_name: str) -> str | None:
         """Get audio file path for voice reference."""
         voice_prompt = self.get_voice_prompt(voice_name)
         if not voice_prompt:
@@ -225,7 +225,7 @@ class VoicePromptManager:
 
         return None
 
-    def suggest_voices_for_prompt(self, transcript: str, scene_prompt: str = "") -> List[str]:
+    def suggest_voices_for_prompt(self, transcript: str, scene_prompt: str = "") -> list[str]:
         """Suggest suitable voices based on transcript and scene prompt."""
         transcript_lower = transcript.lower()
         scene_prompt_lower = scene_prompt.lower()
@@ -328,7 +328,7 @@ class LLMToneController:
         # Default scene prompt for custom tones
         return custom_description if custom_description else "neutral speaking setting with natural voice"
 
-    def get_available_tones(self) -> List[str]:
+    def get_available_tones(self) -> list[str]:
         """Get list of available preset tones."""
         return list(self.scene_templates.keys())
 

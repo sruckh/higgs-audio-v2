@@ -1,18 +1,15 @@
 import math
-from typing import List
 from typing import Union
 
 import numpy as np
 import torch
 from audiotools import AudioSignal
 from audiotools.ml import BaseModel
+from dac.nn.layers import Snake1d, WNConv1d, WNConvTranspose1d
+from dac.nn.quantize import ResidualVectorQuantize
 from torch import nn
 
 from .base import CodecMixin
-from dac.nn.layers import Snake1d
-from dac.nn.layers import WNConv1d
-from dac.nn.layers import WNConvTranspose1d
-from dac.nn.quantize import ResidualVectorQuantize
 
 
 def init_weights(m):
@@ -153,10 +150,10 @@ class DAC(BaseModel, CodecMixin):
     def __init__(
         self,
         encoder_dim: int = 64,
-        encoder_rates: List[int] = [2, 4, 8, 8],
+        encoder_rates: list[int] = [2, 4, 8, 8],
         latent_dim: int = None,
         decoder_dim: int = 1536,
-        decoder_rates: List[int] = [8, 8, 4, 2],
+        decoder_rates: list[int] = [8, 8, 4, 2],
         n_codebooks: int = 9,
         codebook_size: int = 1024,
         codebook_dim: Union[int, list] = 8,
@@ -324,8 +321,9 @@ class DAC(BaseModel, CodecMixin):
 
 
 if __name__ == "__main__":
-    import numpy as np
     from functools import partial
+
+    import numpy as np
 
     model = DAC().to("cpu")
 
@@ -333,7 +331,7 @@ if __name__ == "__main__":
         o = m.extra_repr()
         p = sum([np.prod(p.size()) for p in m.parameters()])
         fn = lambda o, p: o + f" {p / 1e6:<.3f}M params."
-        setattr(m, "extra_repr", partial(fn, o=o, p=p))
+        m.extra_repr = partial(fn, o=o, p=p)
     print(model)
     print("Total # of params: ", sum([np.prod(p.size()) for p in model.parameters()]))
 

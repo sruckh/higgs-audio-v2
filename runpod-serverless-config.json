@@ -1,0 +1,21 @@
+{
+  "name": "higgs-audio-v2-serverless",
+  "image": "ghcr.io/your-username/higgs-audio:latest",
+  "gpu": "NVIDIA RTX 4090",
+  "gpu_count": 1,
+  "container_disk_size_gb": 5,
+  "network_volume_id": "your-volume-id",
+  "network_volume_mount_path": "/runpod-volume",
+  "ports": "8080/http",
+  "env": {
+    "MODEL_PATH": "/runpod-volume/bosonai/higgs-audio-v2-generation-3B-base",
+    "TOKENIZER_PATH": "/runpod-volume/bosonai/higgs-audio-v2-tokenizer",
+    "AWS_ACCESS_KEY_ID": "${AWS_ACCESS_KEY_ID}",
+    "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_ACCESS_KEY}",
+    "AWS_DEFAULT_REGION": "${AWS_DEFAULT_REGION:-us-east-1}",
+    "PRELOAD_MODELS": "false"
+  },
+  "request_timeout_ms": 600000,
+  "idle_timeout_ms": 300000,
+  "startup_timeout_ms": 600000
+}

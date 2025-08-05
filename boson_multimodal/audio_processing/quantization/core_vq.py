@@ -33,12 +33,11 @@
 
 import typing as tp
 
-from einops import rearrange, repeat
 import torch
-from torch import nn
 import torch.nn.functional as F
-
-from xcodec.quantization.distrib import broadcast_tensors, rank
+from einops import rearrange, repeat
+from torch import nn
+from xcodec.quantization.distrib import broadcast_tensors
 
 
 def default(val: tp.Any, d: tp.Any) -> tp.Any:
@@ -243,7 +242,7 @@ class VectorQuantization(nn.Module):
         self,
         dim: int,
         codebook_size: int,
-        codebook_dim: tp.Optional[int] = None,
+        codebook_dim: int | None = None,
         decay: float = 0.99,
         epsilon: float = 1e-5,
         kmeans_init: bool = True,
@@ -319,7 +318,7 @@ class ResidualVectorQuantization(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList([VectorQuantization(**kwargs) for _ in range(num_quantizers)])
 
-    def forward(self, x, n_q: tp.Optional[int] = None):
+    def forward(self, x, n_q: int | None = None):
         quantized_out = 0.0
         residual = x
 
@@ -339,7 +338,7 @@ class ResidualVectorQuantization(nn.Module):
         out_losses, out_indices = map(torch.stack, (all_losses, all_indices))
         return quantized_out, out_indices, out_losses
 
-    def encode(self, x: torch.Tensor, n_q: tp.Optional[int] = None) -> torch.Tensor:
+    def encode(self, x: torch.Tensor, n_q: int | None = None) -> torch.Tensor:
         residual = x
         all_indices = []
         n_q = n_q or len(self.layers)

@@ -1,10 +1,9 @@
 """Projector that maps hidden states from the LLM component to multimodal logits."""
 
+from dataclasses import dataclass
+
 import torch
 from torch import nn
-
-from dataclasses import dataclass
-from typing import Optional, Tuple
 
 from .common import HiggsAudioPreTrainedModel
 from .configuration_higgs_audio import HiggsAudioConfig
@@ -14,8 +13,8 @@ from .configuration_higgs_audio import HiggsAudioConfig
 class HiggsAudioDecoderLayerOutput:
     logits: torch.FloatTensor
     audio_logits: torch.FloatTensor
-    attentions: Optional[Tuple[torch.FloatTensor, ...]] = None
-    past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
+    attentions: tuple[torch.FloatTensor, ...] | None = None
+    past_key_values: tuple[tuple[torch.FloatTensor]] | None = None
 
 
 class HiggsAudioDecoderProjector(HiggsAudioPreTrainedModel):
@@ -26,7 +25,7 @@ class HiggsAudioDecoderProjector(HiggsAudioPreTrainedModel):
         Directly map the hidden states to audio logits for all the codebooks.
     """
 
-    def __init__(self, config: HiggsAudioConfig, layer_idx: Optional[int] = None):
+    def __init__(self, config: HiggsAudioConfig, layer_idx: int | None = None):
         super().__init__(config)
         self.text_lm_head = nn.Linear(config.text_config.hidden_size, config.text_config.vocab_size, bias=False)
         self.audio_lm_head = nn.Linear(

@@ -1,11 +1,9 @@
+import math
+from dataclasses import dataclass
+
 import librosa
 import torch
 import torch.nn.functional as F
-import math
-from typing import List, Tuple
-
-from dataclasses import dataclass
-from typing import List, Optional
 from transformers.models.whisper.processing_whisper import WhisperProcessor
 
 from ..dataset.chatml_dataset import ChatMLDatasetSample
@@ -24,24 +22,22 @@ def _ceil_to_next_power_of_two(self, x):
 class HiggsAudioBatchInput:
     input_ids: torch.LongTensor  # shape (bsz, seq_len).
     attention_mask: torch.Tensor  # shape (bsz, seq_len).
-    audio_features: Optional[torch.Tensor]  # shape (num_audio_in, feature_dim, max_mel_seq_len).
-    audio_feature_attention_mask: Optional[torch.Tensor]  # shape (num_audio_in, max_mel_seq_len).
-    audio_out_ids: Optional[torch.LongTensor]  # shape (num_codebooks, audio_out_total_length)
-    audio_out_ids_start: Optional[torch.LongTensor]  # shape (num_audio_out,)
+    audio_features: torch.Tensor | None  # shape (num_audio_in, feature_dim, max_mel_seq_len).
+    audio_feature_attention_mask: torch.Tensor | None  # shape (num_audio_in, max_mel_seq_len).
+    audio_out_ids: torch.LongTensor | None  # shape (num_codebooks, audio_out_total_length)
+    audio_out_ids_start: torch.LongTensor | None  # shape (num_audio_out,)
     # The audio_out_ids_start_group_loc has the same length as audio_out_ids_start. It is used to recover group location in a batch for an audio segment
     # Currently, we concatenante audio segments along dim 0 to handle variadic audio segment length. However, in the alignment stage, we need the location information
     # For example,
     #  audio_out_ids_start = [0, 2, 4, 8]; and the first two audio segments come from the same sample in a batch, and other two come from different samples.
     #  This is a batch of 3 samples, then we will have the group location as:
     #  audio_out_ids_start_group_loc = [0, 0, 1, 2]
-    audio_out_ids_start_group_loc: Optional[
-        torch.LongTensor
-    ]  # shape (num_audio_out,), specify which a sample's group location in the batch
-    audio_in_ids: Optional[torch.LongTensor]  # shape (num_codebooks, audio_in_total_length)
-    audio_in_ids_start: Optional[torch.LongTensor]  # shape (num_audio_in,)
-    label_ids: Optional[torch.LongTensor]  # shape (bsz, seq_len)
-    label_audio_ids: Optional[torch.LongTensor]  # shape (num_codebooks, audio_out_total_length)
-    reward: Optional[float] = None
+    audio_out_ids_start_group_loc: torch.LongTensor | None  # shape (num_audio_out,), specify which a sample's group location in the batch
+    audio_in_ids: torch.LongTensor | None  # shape (num_codebooks, audio_in_total_length)
+    audio_in_ids_start: torch.LongTensor | None  # shape (num_audio_in,)
+    label_ids: torch.LongTensor | None  # shape (bsz, seq_len)
+    label_audio_ids: torch.LongTensor | None  # shape (num_codebooks, audio_out_total_length)
+    reward: float | None = None
 
 
 class HiggsAudioSampleCollator:
@@ -107,8 +103,8 @@ class HiggsAudioSampleCollator:
         self.mask_audio_out_token_label = mask_audio_out_token_label
 
     def _process_and_duplicate_audio_tokens(
-        self, input_ids: torch.Tensor, audio_idx: int, wv: torch.Tensor, sr: int, labels: Optional[torch.Tensor] = None
-    ) -> Tuple[torch.Tensor, torch.Tensor, int]:
+        self, input_ids: torch.Tensor, audio_idx: int, wv: torch.Tensor, sr: int, labels: torch.Tensor | None = None
+    ) -> tuple[torch.Tensor, torch.Tensor, int]:
         """Process long audio and duplicate corresponding audio tokens.
 
         Args:
@@ -148,7 +144,7 @@ class HiggsAudioSampleCollator:
 
         return new_input_ids, new_labels, num_chunks
 
-    def __call__(self, batch: List[ChatMLDatasetSample]):
+    def __call__(self, batch: list[ChatMLDatasetSample]):
         """Collate the input data with support for long audio processing."""
 
         label_ids = None

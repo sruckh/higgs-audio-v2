@@ -1,8 +1,8 @@
+import gc
+from typing import Union
+
 import torch
 import torch.nn as nn
-from typing import Optional, List, Dict, Tuple, Union
-import gc
-
 from transformers.cache_utils import Cache
 
 
@@ -14,10 +14,10 @@ class CUDAGraphRunner(nn.Module):
         super().__init__()
         self.model = model
 
-        self.input_buffers: Dict[str, torch.Tensor] = {}
-        self.output_buffers: Dict[str, torch.Tensor] = {}
+        self.input_buffers: dict[str, torch.Tensor] = {}
+        self.output_buffers: dict[str, torch.Tensor] = {}
 
-        self._graph: Optional[torch.cuda.CUDAGraph] = None
+        self._graph: torch.cuda.CUDAGraph | None = None
 
     @property
     def graph(self):
@@ -31,16 +31,16 @@ class CUDAGraphRunner(nn.Module):
         position_ids: torch.Tensor,
         audio_discrete_codes_mask: torch.Tensor,
         cache_position: torch.Tensor,
-        past_key_values: Union[Cache, List[torch.FloatTensor]],
+        past_key_values: Union[Cache, list[torch.FloatTensor]],
         use_cache: bool,
         audio_attention_mask: torch.Tensor,
         fast_forward_attention_mask: torch.Tensor,
         output_attentions: bool,
         output_hidden_states: bool,
-        is_decoding_audio_token: Optional[bool] = None,
-        is_using_cuda_graph: Optional[bool] = False,
+        is_decoding_audio_token: bool | None = None,
+        is_using_cuda_graph: bool | None = False,
         stream: torch.cuda.Stream = None,
-        memory_pool: Optional[Tuple[int, int]] = None,
+        memory_pool: tuple[int, int] | None = None,
     ):
         assert self._graph is None
         # Run warmup iterations

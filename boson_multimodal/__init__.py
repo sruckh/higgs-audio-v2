@@ -5,10 +5,11 @@ __author__ = "Boson AI"
 __email__ = "info@boson.ai"
 
 # Core components
-from .data_types import AudioContent, TextContent, Message, ChatMLSample
-from .serve.serve_engine import HiggsAudioServeEngine, HiggsAudioResponse
-from .model.higgs_audio import HiggsAudioModel, HiggsAudioConfig
 from .audio_processing.higgs_audio_tokenizer import HiggsAudioFeatureExtractor, HiggsAudioTokenizer
+from .data_types import AudioContent, ChatMLSample, Message, TextContent
+from .model.higgs_audio import HiggsAudioConfig, HiggsAudioModel
+from .serve.serve_engine import HiggsAudioResponse, HiggsAudioServeEngine
+
 
 # RunPod serverless integration
 try:

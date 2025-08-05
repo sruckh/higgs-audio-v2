@@ -10,7 +10,7 @@ class Conv1d1x1(nn.Conv1d):
     """1x1 Conv1d."""
 
     def __init__(self, in_channels, out_channels, bias=True):
-        super(Conv1d1x1, self).__init__(in_channels, out_channels, kernel_size=1, bias=bias)
+        super().__init__(in_channels, out_channels, kernel_size=1, bias=bias)
 
 
 class Conv1d(nn.Module):

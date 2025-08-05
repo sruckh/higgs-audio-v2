@@ -1,13 +1,15 @@
-import uuid
 import base64
-import re
-import regex
-from typing import AsyncGenerator, Union
 import io
-from pydub import AudioSegment
-import torch
-import numpy as np
+import re
+import uuid
+from collections.abc import AsyncGenerator
 from functools import lru_cache
+from typing import Union
+
+import numpy as np
+import regex
+import torch
+from pydub import AudioSegment
 
 from ..audio_processing.higgs_audio_tokenizer import HiggsAudioTokenizer
 

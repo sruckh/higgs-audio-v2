@@ -41,14 +41,14 @@
 
 import typing as tp
 
-from einops import rearrange
 import torch
-from torch import nn
-import torch.nn.functional as F
 import torch.distributed as dist
+import torch.nn.functional as F
+from einops import rearrange
+from torch import nn
 
-from .distrib import broadcast_tensors, is_distributed
 from .ddp_utils import SyncFunction
+from .distrib import broadcast_tensors, is_distributed
 
 
 def default(val: tp.Any, d: tp.Any) -> tp.Any:
@@ -184,7 +184,7 @@ class EuclideanCodebook(nn.Module):
         if self.inited:
             return
 
-        ## NOTE (snippet added by Songxiang Liu): gather data from all gpus
+        # NOTE (snippet added by Songxiang Liu): gather data from all gpus
         if dist.is_available() and dist.is_initialized():
             # [B * T * world_size, D]
             data = SyncFunction.apply(data)
@@ -209,7 +209,7 @@ class EuclideanCodebook(nn.Module):
         if not torch.any(expired_codes):
             return
 
-        ## NOTE (snippet added by Songxiang Liu): gather data from all gpus
+        # NOTE (snippet added by Songxiang Liu): gather data from all gpus
         if is_distributed():
             # [B * T * world_size, D]
             batch_samples = SyncFunction.apply(batch_samples)
@@ -263,7 +263,7 @@ class EuclideanCodebook(nn.Module):
         quantize = self.dequantize(embed_ind)  # [B, T, D]
 
         if self.training:
-            ### Update codebook by EMA
+            # Update codebook by EMA
             embed_onehot_sum = embed_onehot.sum(0)  # [cb-size,]
             embed_sum = x.t() @ embed_onehot  # [D, cb-size]
             if is_distributed():
@@ -308,7 +308,7 @@ class VectorQuantization(nn.Module):
         self,
         dim: int,
         codebook_size: int,
-        codebook_dim: tp.Optional[int] = None,
+        codebook_dim: int | None = None,
         decay: float = 0.99,
         epsilon: float = 1e-5,
         kmeans_init: bool = True,
@@ -384,7 +384,7 @@ class ResidualVectorQuantization(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList([VectorQuantization(**kwargs) for _ in range(num_quantizers)])
 
-    def forward(self, x, n_q: tp.Optional[int] = None):
+    def forward(self, x, n_q: int | None = None):
         quantized_out = 0.0
         residual = x
 
@@ -404,7 +404,7 @@ class ResidualVectorQuantization(nn.Module):
         out_losses, out_indices = map(torch.stack, (all_losses, all_indices))
         return quantized_out, out_indices, out_losses
 
-    def encode(self, x: torch.Tensor, n_q: tp.Optional[int] = None) -> torch.Tensor:
+    def encode(self, x: torch.Tensor, n_q: int | None = None) -> torch.Tensor:
         residual = x
         all_indices = []
         n_q = n_q or len(self.layers)
