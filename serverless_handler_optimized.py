@@ -315,12 +315,45 @@ class OptimizedHandler:
     async def handle_health(self) -> dict:
         """Handle health check"""
         try:
+            # Validate virtual environment setup
+            venv_path = "/runpod-volume/higgs"
+            venv_python = f"{venv_path}/bin/python"
+            
+            # Check if virtual environment exists and is accessible
+            venv_valid = (
+                os.path.exists(venv_path) and 
+                os.path.exists(venv_python) and
+                sys.path[0].startswith(venv_path) and
+                os.environ.get("VIRTUAL_ENV") == venv_path
+            )
+            
+            # Check if Python packages are accessible in virtual environment
+            packages_accessible = True
+            try:
+                import torch
+                import soundfile
+                import transformers
+                import loguru
+                logger.info(f"Virtual environment packages accessible - PyTorch: {torch.__version__}")
+            except ImportError as e:
+                packages_accessible = False
+                logger.error(f"Virtual environment package access failed: {e}")
+            
+            health_status = "healthy" if (venv_valid and packages_accessible) else "unhealthy"
+            
             return {
-                "status": "healthy",
+                "status": health_status,
                 "timestamp": time.time(),
                 "models_loaded": self.model_manager.initialized,
                 "device": self.model_manager.device,
                 "container_optimized": True,
+                "virtual_environment": {
+                    "valid": venv_valid,
+                    "path": venv_path,
+                    "packages_accessible": packages_accessible,
+                    "sys_path_prefix": sys.path[0],
+                    "virtual_env_var": os.environ.get("VIRTUAL_ENV")
+                }
             }
         except Exception as e:
             return {"status": "unhealthy", "error": str(e), "timestamp": time.time()}
