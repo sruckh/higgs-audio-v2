@@ -11,6 +11,17 @@
 
 ---
 
+## 2025-08-08 10:30
+
+### DockerHub Workflow Configuration Fix
+- **What**: Updated GitHub Actions workflow to push Docker images to DockerHub repository gemneye/higgs-audio instead of GitHub Container Registry
+- **Why**: Original workflow was configured for ghcr.io but project requirements specified pushing to DockerHub under gemneye organization
+- **How**: Changed REGISTRY from ghcr.io to docker.io, updated IMAGE_NAME from github.repository to gemneye/higgs-audio, and modified login credentials to use DOCKER_USERNAME/DOCKER_PASSWORD secrets
+- **Issues**: None - straightforward configuration changes that align with project deployment requirements
+- **Result**: Workflow now properly configured to push Docker images to gemneye/higgs-audio on DockerHub when appropriate secrets are configured
+
+---
+
 ## 2025-08-06 14:30
 
 ### Virtual Environment Optimization for RunPod Serverless |TASK:TASK-2025-08-06-001|
